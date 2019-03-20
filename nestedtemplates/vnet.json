@@ -42,17 +42,36 @@
                 "description": "Address range that will be used by the App Service Environment"
             }
         },
+        "azfwSubnetAddressRange":{
+            "type":"string",
+            "metadata": {
+                "description": "Address range that will be used by the Azure Firewall Subnet"
+            }
+        },
         "rebuildVNET": {
             "type": "string",
             "metadata": {"description":"Whether to rebuild the VNET (yes) or not (no)"},
+            "defaultValue": "No"
+        },
+        "vnetResourceGroupName":{
+            "type": "string",
+            "metadata": {"description":"Resource Group where VNET is created"},
+            "defaultValue": "No"
+        },
+        "aseName":{
+            "type":"string",
+            "metadata": {"description":"ASE name"},
             "defaultValue": "No"
         }
     },
     "variables": {
         "nsgName": "[concat(parameters('vnetResourceName'), '-', parameters('subnetName'), '-ase-mgmt-nsg')]",
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
-        "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]"
-    },
+        "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]",
+        "azfwRouteTableName": "[concat(parameters('subnetName'), '-FirewallRouteTable')]",
+        "azfwPublicIp":"[concat(parameters('aseName'),'-Firewall-pip')]",
+        "azfwName":"[concat(parameters('aseName'),'-Firewall')]"
+        },
     "resources": [
         {
             "apiVersion": "2018-04-01",
@@ -416,12 +435,292 @@
             "name": "[variables('subnetRouteTableName')]",
             "location": "[parameters('location')]",
             "tags": {
-                "displayName": "Deploy UDR (Conditional)"
+                "displayName": "Deploy ASE UDR"
             },
             "properties": {
                 "routes": [
                     {
-                        "name": "ase-route",
+                        "Name":  "70.37.57.58-route",
+                        "properties":  {
+                                           "addressPrefix":  "70.37.57.58",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "157.55.208.185-route",
+                        "properties":  {
+                                           "addressPrefix":  "157.55.208.185",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.174.22.21-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.174.22.21",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "13.94.149.179-route",
+                        "properties":  {
+                                           "addressPrefix":  "13.94.149.179",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "13.94.143.126-route",
+                        "properties":  {
+                                           "addressPrefix":  "13.94.143.126",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "13.94.141.115-route",
+                        "properties":  {
+                                           "addressPrefix":  "13.94.141.115",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.178.195.197-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.178.195.197",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.178.190.65-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.178.190.65",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.178.184.149-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.178.184.149",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.178.177.147-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.178.177.147",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "13.75.127.117-route",
+                        "properties":  {
+                                           "addressPrefix":  "13.75.127.117",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "40.83.125.161-route",
+                        "properties":  {
+                                           "addressPrefix":  "40.83.125.161",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "40.83.121.56-route",
+                        "properties":  {
+                                           "addressPrefix":  "40.83.121.56",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "40.83.120.64-route",
+                        "properties":  {
+                                           "addressPrefix":  "40.83.120.64",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.187.56.50-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.187.56.50",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.187.63.37-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.187.63.37",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.187.59.251-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.187.59.251",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.187.63.19-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.187.63.19",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.165.158.140-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.165.158.140",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.165.152.214-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.165.152.214",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.165.154.193-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.165.154.193",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.165.153.122-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.165.153.122",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "104.44.129.255-route",
+                        "properties":  {
+                                           "addressPrefix":  "104.44.129.255",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "104.44.134.255-route",
+                        "properties":  {
+                                           "addressPrefix":  "104.44.134.255",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "104.44.129.243-route",
+                        "properties":  {
+                                           "addressPrefix":  "104.44.129.243",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "104.44.129.141-route",
+                        "properties":  {
+                                           "addressPrefix":  "104.44.129.141",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "23.102.188.65-route",
+                        "properties":  {
+                                           "addressPrefix":  "23.102.188.65",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "191.236.154.88-route",
+                        "properties":  {
+                                           "addressPrefix":  "191.236.154.88",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "13.64.115.203-route",
+                        "properties":  {
+                                           "addressPrefix":  "13.64.115.203",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "65.52.193.203-route",
+                        "properties":  {
+                                           "addressPrefix":  "65.52.193.203",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "70.37.89.222-route",
+                        "properties":  {
+                                           "addressPrefix":  "70.37.89.222",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.224.105.172-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.224.105.172",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "23.102.135.246-route",
+                        "properties":  {
+                                           "addressPrefix":  "23.102.135.246",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.225.177.153-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.225.177.153",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "65.52.172.237-route",
+                        "properties":  {
+                                           "addressPrefix":  "65.52.172.237",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "52.151.25.45-route",
+                        "properties":  {
+                                           "addressPrefix":  "52.151.25.45",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name":  "40.124.47.188-route",
+                        "properties":  {
+                                           "addressPrefix":  "40.124.47.188",
+                                           "nextHopType":  "Internet"
+                                       }
+                    },
+                    {
+                        "Name" : "AzureFirewall-ASE-Route",
+                        "properties":{
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType":"VirtualAppliance",
+                            "nextHopIpAddress": "192.168.1.0"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[variables('azfwRouteTableName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "Deploy Azure Firewall UDR"
+            },
+            "properties": {
+                "routes": [
+                    {
+                        "name": "default-route",
                         "properties": {
                             "addressPrefix": "0.0.0.0/0",
                             "nextHopType": "Internet"
@@ -437,7 +736,7 @@
             "name": "[parameters('vnetResourceName')]",
             "location": "[parameters('location')]",
             "tags": {
-                "displayName": "Deploy VNet - with UDR"
+                "displayName": "Deploy VNet"
             },
             "properties": {
                 "addressSpace": {
@@ -462,7 +761,24 @@
                                 },
                                 {
                                     "service": "Microsoft.Sql"
+                                },
+                                {
+                                    "service": "Microsoft.EventHub"
                                 }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AzureFirewallSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('azfwSubnetAddressRange')]",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            },
+                            "routeTable":{
+                                "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
+                            },
+                            "serviceEndpoints": [
                             ]
                         }
                     }
@@ -470,9 +786,128 @@
             },
             "dependsOn": [
                 "[variables('nsgId')]",
-                "[resourceId('Microsoft.Network/routeTables', variables('subnetRouteTableName'))]"
+                "[resourceId('Microsoft.Network/routeTables', variables('subnetRouteTableName'))]",
+                "[resourceId('Microsoft.Network/routeTables',variables('azfwRouteTableName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/publicIpAddresses",
+            "sku": {
+                "name": "Standard"
+            },
+            "name": "variables('azfwPublicIp')]",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[variables('azfwName')]",
+            "apiVersion": "2018-12-01",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets',parameters('vnetResourceName'),parameters('subnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/publicIpAddresses', variables('azfwPublicIp'))]"
+                            }
+                        }
+                    }
+                ],
+                "ApplicationRuleCollections" : [
+                    {
+                      "Name": "AppServiceEnvironment",
+                      "Priority": 500,
+                      "Action": {
+                        "Type": "Allow"
+                      },
+                      "Rules": [
+                        {
+                          "Name": "ASE",
+                          "Description": null,
+                          "SourceAddresses": [],
+                          "TargetFqdns": [],
+                          "FqdnTags": [
+                            "WindowsUpdate",
+                            "AppServiceEnvironment"
+                          ],
+                          "Protocols": [
+                            {
+                              "ProtocolType": "Http",
+                              "Port": 80
+                            },
+                            {
+                              "ProtocolType": "Https",
+                              "Port": 443
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "NetworkRuleCollections"     : [
+                    {
+                      "Name": "Time-Diagnostics",
+                      "Priority": 300,
+                      "Action": {
+                        "Type": "Allow"
+                      },
+                      "Rules": [
+                        {
+                          "Name": "Time",
+                          "Description": null,
+                          "Protocols": [
+                            "Any"
+                          ],
+                          "SourceAddresses": [
+                            "*"
+                          ],
+                          "DestinationAddresses": [
+                            "*"
+                          ],
+                          "DestinationPorts": [
+                            "123"
+                          ]
+                        },
+                        {
+                          "Name": "Diagnostics",
+                          "Description": null,
+                          "Protocols": [
+                            "Any"
+                          ],
+                          "SourceAddresses": [
+                            "*"
+                          ],
+                          "DestinationAddresses": [
+                            "*"
+                          ],
+                          "DestinationPorts": [
+                            "12000"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "natRuleCollections": []
+            },
+            "dependsOn": [
+                "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/publicIpAddresses', variables('azfwPublicIp'))]"
             ]
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "AzureFWPrivateIPAddress":{
+            "type":"string",
+            "value":"[reference(variables('azfwName')).ipConfigurations.PrivateIPAddress]"
+        }
+    }
 }

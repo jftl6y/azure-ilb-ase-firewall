@@ -55,6 +55,12 @@
                 "description": "Address range that will be used by the App Service Environment"
             }
         },
+        "azfwSubnetAddressRange":{
+            "type":"string",
+            "metadata": {
+                "description": "Address range that will be used by the Azure Firewall"
+            }
+        },
         "internalLoadBalancingMode": {
             "type": "int",
             "defaultValue": 3,
@@ -131,6 +137,15 @@
                     },
                     "rebuildVNET":{
                         "value": "[parameters('aseRebuildVNET')]"
+                    },
+                    "azfwSubnetAddressRange" : {
+                        "value" :"[parameters('azfwSubnetAddressRange')]"
+                    },
+                    "vnetResourceGroupName":{
+                        "value":"[parameters('vnetResourceGroupName')]"
+                    },
+                    "aseName":{
+                        "value":"parameters('aseName')]"
                     }
                 }
             }

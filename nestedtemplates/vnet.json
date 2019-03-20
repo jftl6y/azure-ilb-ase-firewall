@@ -795,7 +795,7 @@
             "sku": {
                 "name": "Standard"
             },
-            "name": "variables('azfwPublicIp')]",
+            "name": "[variables('azfwPublicIp')]",
             "apiVersion": "2018-08-01",
             "location": "[parameters('location')]",
             "tags": {},

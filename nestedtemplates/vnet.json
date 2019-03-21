@@ -70,7 +70,9 @@
         "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]",
         "azfwRouteTableName": "AzureFirewallSubnet-RouteTable",
         "azfwName":"[concat(parameters('aseName'),'-firewall')]",
-        "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]"        
+        "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]",
+        "azPrivateIpArray":"[split(parameters('azfwSubnetAddressRange'),'.')]",
+        "azPrivateIp":"[concat(variables('azPrivateIpArray')[0],variables('azPrivateIpArray')[1],variables('azPrivateIpArray')[3],'4')]"
         },
     "resources": [
         {

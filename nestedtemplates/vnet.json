@@ -783,7 +783,7 @@
             ]
         },
         {
-            "type": "Microsoft.Network/publicIpAddresses",
+            "type": "Microsoft.Network/publicIPAddresses",
             "sku": {
                 "name": "Standard"
             },

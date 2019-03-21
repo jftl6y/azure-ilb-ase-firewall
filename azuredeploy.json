@@ -45,6 +45,7 @@
         },
         "aseSubnetName": {
             "type": "string",
+            "defaultValue": "ase-subnet",
             "metadata": {
                 "description": "Subnet name that will contain the App Service Environment"
             }
@@ -145,7 +146,7 @@
                         "value":"[parameters('vnetResourceGroupName')]"
                     },
                     "aseName":{
-                        "value":"parameters('aseName')]"
+                        "value":"[parameters('aseName')]"
                     }
                 }
             }

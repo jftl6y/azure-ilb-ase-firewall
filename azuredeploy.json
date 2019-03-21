@@ -86,7 +86,7 @@
         },
         "sites_app1_name":{
             "type": "string",
-            "metadata": {"description": "Name of the initial ASE App"}
+            "metadata": {"description": "Name of the initial ASE App (without the FQDN)"}
         }, 
         "azfwSubnetAddressRange":{
             "type":"string",
@@ -97,7 +97,7 @@
         "sqlManagedInstanceName":{
             "type":"string",
             "metadata": {
-                "description": "Name of the Azure SQL Managed Instance - must be unique, contain only lowercase letters, numbers and '-'"
+                "description": "Name of the Azure SQL Managed Instance - must be globally unique, contain only lowercase letters, numbers and '-'"
             }
         },
         "sqlManagedInstanceAdminLogin":{
@@ -159,14 +159,6 @@
             "metadata": {"description": "SQL Collation"},
             "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
         },
-        "sqlManagedInstance-publicDataEndpointEnabled":{
-            "type":"bool",
-            "metadata": {"description": "Public Endpoint enabled"},
-            "defaultValue": "false",
-            "allowedValues": ["true","false"]
-        },
-        
-        
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -353,7 +345,7 @@
                 "licenseType": "[parameters('sqlManagedInstance-licenseType')]",
                 "hardwareFamily":"[parameters('sqlManagedInstance-hardwareFamily')]",
                 "collation":"[parameters('sqlManagedInstance-collation')]",
-                "publicDataEndpointEnabled":"[parameters('sqlManagedInstance-publicDataEndpointEnabled')]"
+                "publicDataEndpointEnabled":"false"
             }
         }
     ],

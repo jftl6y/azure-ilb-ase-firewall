@@ -71,8 +71,8 @@
         "azfwRouteTableName": "AzureFirewallSubnet-RouteTable",
         "azfwName":"[concat(parameters('aseName'),'-firewall')]",
         "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]",
-        "azPrivateIpArray":"[split(parameters('azfwSubnetAddressRange'),'.')]",
-        "azPrivateIp":"[concat(variables('azPrivateIpArray')[0],variables('azPrivateIpArray')[1],variables('azPrivateIpArray')[3],'4')]"
+        "azFwPrivateIpArray":"[split(parameters('azfwSubnetAddressRange'),'.')]",
+        "azFwPrivateIp":"[concat(variables('azFwPrivateIpArray')[0],'.',variables('azFwPrivateIpArray')[1],'.',variables('azFwPrivateIpArray')[2],'.4')]"
         },
     "resources": [
         {
@@ -699,6 +699,14 @@
                                            "addressPrefix":  "40.124.47.188/32",
                                            "nextHopType":  "Internet"
                                        }
+                    },
+                    {
+                        "name": "DefaultRoute",
+                        "properties":{
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType" :"VirtualAppliance",
+                            "nextHopIpAddress": "[variables('azFwPrivateIp')]"
+                        }
                     }
                 ]                
             }
@@ -900,9 +908,7 @@
         }
     ],
     "outputs": {
-        "AzureFWName":{
-            "type":"string",
-            "value":"[variables('azfwName')]"
+        
         }
     }
 }

@@ -12,7 +12,7 @@
     },
     "variables": {
         "azFwPrivateIpArray":"[split(parameters('azfwSubnetAddressRange'),'.')]",
-        "azFwPrivateIp":"[concat(variables('azFwPrivateIpArray')[0],'.',variables('azFwPrivateIpArray')[1],'.',variables('azFwPrivateIpArray')[3],'.4')]"
+        "azFwPrivateIp":"[concat(variables('azFwPrivateIpArray')[0],'.',variables('azFwPrivateIpArray')[1],'.',variables('azFwPrivateIpArray')[2],'.4')]"
 
     },
     "resources": [],

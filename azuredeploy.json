@@ -96,8 +96,8 @@
         },
         "aseRebuildVNET": {
             "type": "string",
-            "metadata": {"description":"Whether to rebuild the VNET (yes) or not (no)"},
-            "defaultValue": "No",
+            "metadata": {"description":"Whether to rebuild the VNET (Yes) or not (No)"},
+            "defaultValue": "Yes",
             "allowedValues": [
                 "Yes",
                 "No"

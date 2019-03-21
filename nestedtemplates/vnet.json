@@ -855,7 +855,7 @@
             },
             "properties": {
                 "routes": [
-                    {"Name":"subnet_to_vnetlocal","properties": { "addressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]","nextHopType":"Virtual network"}},
+                    {"Name":"subnet_to_vnetlocal","properties": { "addressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]","nextHopType":"VnetLocal"}},
                     {"Name":"mi-0-5-next-hop-internet","properties": { "addressPrefix": "0.0.0.0/5","nextHopType":"Internet"}},
                     {"Name":"mi-11-8-nexthop-internet","properties": { "addressPrefix": "11.0.0.0/8","nextHopType":"Internet"}},
                     {"Name":"mi-12-6-nexthop-internet","properties": { "addressPrefix": "12.0.0.0/6","nextHopType":"Internet"}},

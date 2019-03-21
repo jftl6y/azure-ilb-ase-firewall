@@ -69,8 +69,8 @@
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
         "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]",
         "azfwRouteTableName": "[concat(parameters('subnetName'), '-FirewallRouteTable')]",
-        "azfwPublicIp":"[concat(parameters('aseName'),'-Firewall-pip')]",
-        "azfwName":"[concat(parameters('aseName'),'-Firewall')]"
+        "azfwName":"[concat(parameters('aseName'),'-firewall')]",
+        "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]"        
         },
     "resources": [
         {

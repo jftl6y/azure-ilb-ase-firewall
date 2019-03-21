@@ -97,12 +97,24 @@
         },
         "sqlManagedInstance-licenseType":{
             "type":"string",
-            "metadata": {"description": "Type of license basic or standard"},
+            "metadata": {"description": "Type of license: BasePrice (BYOL) or LicenceIncluded"},
             "defaultValue": "BasePrice",
             "allowedValues": [
                 "BasePrice",
-                "StandardPrice"
+                "LicenseIncluded"
             ]
+        },
+        "sqlManagedInstance-skuName":{
+            "type":"string",
+            "metadata": {"description": "SKU NAME (GP_Gen4, GP_Gen5, BC_GEN5)"},
+            "defaultValue": "GP_Gen5",
+            "allowedValues": ["GP_Gen4","GP_Gen5","BC_Gen4","BC_Gen5"]
+        },
+        "sqlManagedInstance-skuEdition":{
+            "type":"string",
+            "metadata": {"description": "SKU Edition (GeneralPurpose, BusinessCritical)"},
+            "defaultValue": "GeneralPurpose",
+            "allowedValues": ["GeneralPurpose","BusinessCritical"]
         },
         "sqlManagedInstance-hardwareFamily":{
             "type":"string",
@@ -324,8 +336,8 @@
             "type": "Microsoft.Sql/managedInstances",
             "tags": {"displayName":"Deploy Managed Instance"},
             "sku":{
-                "name":"GP_Gen5",
-                "tier" : "GeneralPurpose"
+                "name":"[parameters('sqlManagedInstance-skuName')]",
+                "tier" : "[parameters('sqlManagedInstance-skuEdition')]"
             },
             "name": "[parameters('sqlManagedInstanceName')]",
             "apiVersion": "2015-05-01-preview",

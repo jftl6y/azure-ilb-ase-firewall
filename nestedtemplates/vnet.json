@@ -957,7 +957,9 @@
             "dependsOn": [
                 "[variables('nsgId')]",
                 "[resourceId('Microsoft.Network/routeTables', variables('subnetRouteTableName'))]",
-                "[resourceId('Microsoft.Network/routeTables',variables('azfwRouteTableName'))]"
+                "[resourceId('Microsoft.Network/routeTables',variables('azfwRouteTableName'))]",
+                "[resourceId('Microsoft.Network/routeTables',variables('miRouteTableName'))]"
+                
             ]
         },
         {

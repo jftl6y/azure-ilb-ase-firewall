@@ -191,21 +191,17 @@
             },
             "kind": "app",
             "name": "[variables('serverfarms_ASE_asp_name')]",
-            "apiVersion": "2016-09-01",
+            "apiVersion": "2016-03-01",
             "location": "West US 2",
             "scale": null,
             "properties": {
-                "name": "[parameters('aseName')]",
-                "workerTierName": null,
-                "adminSiteName": null,
-                "hostingEnvironmentProfile": {
-                    "id": "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
-                },
-                "perSiteScaling": false,
+                "name": "[variables('serverfarms_ASE_asp_name')]",
+                "workerSize": "0",
+                "workerSizeId": "0",
+                "numberOfWorkers": "1",
                 "reserved": false,
-                "targetWorkerCount": 1,
-                "targetWorkerSizeId": 0
-            },
+                "hostingEnvironment": "[parameters('aseName')]"
+                },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
             ]

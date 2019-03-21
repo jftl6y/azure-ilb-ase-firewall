@@ -25,6 +25,25 @@
                 "description": "Name of the ASE resource"
             }
         },
+        "internalLoadBalancingMode": {
+            "type": "int",
+            "defaultValue": 3,
+            "allowedValues": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "metadata": {
+                "description": "0 = public VIP only, 1 = only ports 80/443 are mapped to ILB VIP, 2 = only FTP ports are mapped to ILB VIP, 3 = both ports 80/443 and FTP ports are mapped to an ILB VIP."
+            }
+        },
+        "dnsSuffix": {
+            "type": "string",
+            "metadata": {
+                "description": "Used when deploying an ILB enabled ASE.  Set this to the root domain associated with the ASE.  For example: contoso.com"
+            }
+        },
         "vnetResourceGroupName": {
             "type": "string",
             "metadata": {
@@ -56,6 +75,19 @@
                 "description": "Address range which will be used by the App Service Environment"
             }
         },
+        "aseRebuildVNET": {
+            "type": "string",
+            "metadata": {"description":"Whether to rebuild the VNET (Yes) or not (No)"},
+            "defaultValue": "Yes",
+            "allowedValues": [
+                "Yes",
+                "No"
+            ]
+        },
+        "sites_app1_name":{
+            "type": "string",
+            "metadata": {"description": "Name of the initial ASE App"}
+        }, 
         "azfwSubnetAddressRange":{
             "type":"string",
             "metadata": {
@@ -134,25 +166,7 @@
             "allowedValues": ["true","false"]
         },
         
-        "internalLoadBalancingMode": {
-            "type": "int",
-            "defaultValue": 3,
-            "allowedValues": [
-                0,
-                1,
-                2,
-                3
-            ],
-            "metadata": {
-                "description": "0 = public VIP only, 1 = only ports 80/443 are mapped to ILB VIP, 2 = only FTP ports are mapped to ILB VIP, 3 = both ports 80/443 and FTP ports are mapped to an ILB VIP."
-            }
-        },
-        "dnsSuffix": {
-            "type": "string",
-            "metadata": {
-                "description": "Used when deploying an ILB enabled ASE.  Set this to the root domain associated with the ASE.  For example: contoso.com"
-            }
-        },
+        
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -166,19 +180,6 @@
                 "description": "Auto-generated token to access _artifactsLocation"
             },
             "defaultValue": ""
-        },
-        "aseRebuildVNET": {
-            "type": "string",
-            "metadata": {"description":"Whether to rebuild the VNET (Yes) or not (No)"},
-            "defaultValue": "Yes",
-            "allowedValues": [
-                "Yes",
-                "No"
-            ]
-        },
-        "sites_app1_name":{
-            "type": "string",
-            "metadata": {"description": "Name of the initial ASE App"}
         }
     },
     "variables": {

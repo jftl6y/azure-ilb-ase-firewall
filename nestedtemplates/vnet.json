@@ -96,7 +96,7 @@
             "location": "[parameters('location')]",
             "name": "[variables('miNsgName')]",
             "tags": {
-                "displayName": "Deploy Managed Instance NSG"
+                "displayName": "Deploy MI NSG"
             },
             "properties": {
                 "securityRules": [
@@ -106,7 +106,7 @@
                             "description": "Management ports for the Managed Instance",
                             "protocol": "TCP",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "*",
+                            
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",

@@ -62,7 +62,8 @@
         },
         "sqlManagedInstance-subnet":{
             "type":"string",
-            "metadata":{"description" : "Subnet name which will contain Azure Managed Instance"}
+            "metadata":{"description" : "Subnet name which will contain Azure Managed Instance"},
+            "defaultValue": "mi-subnet"
         },
         "sqlManagedInstanceSubnetAddressRange":{
             "type":"string",

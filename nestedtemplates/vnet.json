@@ -804,7 +804,7 @@
                         "name": "IpConf",
                         "properties": {
                             "subnet": {
-                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets',parameters('vnetResourceName'),parameters('subnetName'))]"
+                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets',parameters('vnetResourceName'),'AzureFirewallSubnet')]"
                             },
                             "publicIPAddress": {
                                 "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/publicIpAddresses', variables('azfwPublicIp'))]"

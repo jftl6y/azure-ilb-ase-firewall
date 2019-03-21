@@ -898,9 +898,9 @@
         }
     ],
     "outputs": {
-        "AzureFWPrivateIPAddress":{
+        "AzureFWName":{
             "type":"string",
-            "value":"[reference(variables('azfwName')).ipConfigurations[0].PrivateIPAddress]"
+            "value":"[variables('azfwName')]"
         }
     }
 }

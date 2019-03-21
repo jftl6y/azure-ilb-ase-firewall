@@ -103,10 +103,16 @@
                 "Yes",
                 "No"
             ]
+        },
+        "sites_app1_name":{
+            "type": "string",
+            "metadata": {"description": "Name of the initial ASE App"},
+            "defaultValue": "No"
         }
     },
     "variables": {
-        "vnetID": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('vnetResourceName'))]"
+        "vnetID": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('vnetResourceName'))]",
+        "serverfarms_ASE_asp_name" : "[concat(parameters('aseName'),'-appServicePlan')]"
     },
     "resources": [
         {
@@ -173,6 +179,83 @@
             },
             "dependsOn": [
                 "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
+            ]
+        },
+        {
+            "type": "Microsoft.web/serverfarms",
+            "sku": {
+                "name": "I1",
+                "tier": "Isolated",
+                "size": "I1",
+                "family": "I",
+                "capacity": 0
+            },
+            "kind": "app",
+            "name": "[variables('serverfarms_ASE_asp_name')]",
+            "apiVersion": "2016-09-01",
+            "location": "West US 2",
+            "scale": null,
+            "properties": {
+                "name": "[parameters('aseName')]",
+                "workerTierName": null,
+                "adminSiteName": null,
+                "hostingEnvironmentProfile": {
+                    "id": "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
+                },
+                "perSiteScaling": false,
+                "reserved": false,
+                "targetWorkerCount": 1,
+                "targetWorkerSizeId": 0
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "kind": "app",
+            "name": "[parameters('sites_app1_name')]",
+            "apiVersion": "2016-08-01",
+            "location": "West US 2",
+            "scale": null,
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_app1_name'),parameters('dnsSuffix'))]",
+                        "sslState": "Disabled",
+                        "virtualIP": null,
+                        "thumbprint": null,
+                        "toUpdate": null,
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_app1_name'),'.scm.',parameters('dnsSuffix'))]",
+                        "sslState": "Disabled",
+                        "virtualIP": null,
+                        "thumbprint": null,
+                        "toUpdate": null,
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('serverfarms_ASE_asp_name'))]",
+                "reserved": false,
+                "siteConfig": null,
+                "scmSiteAlsoStopped": false,
+                "hostingEnvironmentProfile": {
+                    "id": "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
+                },
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "cloningInfo": null,
+                "httpsOnly": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('serverfarms_ASE_asp_name'))]",
+                "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
             ]
         }
     ],

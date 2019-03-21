@@ -56,9 +56,25 @@
                 "description": "Address range which will be used by the App Service Environment"
             }
         },
+        "azfwSubnetAddressRange":{
+            "type":"string",
+            "metadata": {
+                "description": "Address range which will be used by the Azure Firewall"
+            }
+        },
         "sqlManagedInstanceName":{
             "type":"string",
-            "metadata": {"description": "Name of the Azure SQL Managed Instance"}
+            "metadata": {
+                "description": "Name of the Azure SQL Managed Instance - must be unique, contain only lowercase letters, numbers and '-'"
+            }
+        },
+        "sqlManagedInstanceAdminLogin":{
+            "type": "string",
+            "metadata": {"description":"Admin user for Managed Instance"}                
+        },
+        "sqlManagedInstancePassword":{
+            "type": "securestring",
+            "metadata": {"description":"Admin user password - must be 16-128 characters, must contain 3 of uppercase, lowercase, numbers and non-alphanumeric characters, and cannot contain all or part of the login name"}      
         },
         "sqlManagedInstance-subnet":{
             "type":"string",
@@ -68,13 +84,44 @@
         "sqlManagedInstanceSubnetAddressRange":{
             "type":"string",
             "metadata": {"description": "Address range which will be used by the Azure SQL Managed Instance"}
-        },
-        "azfwSubnetAddressRange":{
+        },        
+        "sqlManagedInstance-storageSizeInGB":{
             "type":"string",
-            "metadata": {
-                "description": "Address range which will be used by the Azure Firewall"
-            }
+            "metadata": {"description": "Amount of Storage in GB for this instance"},
+            "defaultValue": "256"
         },
+        "sqlManagedInstance-vCores":{
+            "type":"string",
+            "metadata": {"description": "Number of vCores for this instance"},
+            "defaultValue": "8"
+        },
+        "sqlManagedInstance-licenseType":{
+            "type":"string",
+            "metadata": {"description": "Type of license basic or standard"},
+            "defaultValue": "BasePrice",
+            "allowedValues": [
+                "BasePrice",
+                "StandardPrice"
+            ]
+        },
+        "sqlManagedInstance-hardwareFamily":{
+            "type":"string",
+            "metadata": {"description": "Hardware family (Gen4, Gen5)"},
+            "defaultValue": "Gen5",
+            "allowedValues": ["Gen4","Gen5"]
+        },
+        "sqlManagedInstance-collation":{
+            "type":"string",
+            "metadata": {"description": "SQL Collation"},
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "sqlManagedInstance-publicDataEndpointEnabled":{
+            "type":"bool",
+            "metadata": {"description": "Public Endpoint enabled"},
+            "defaultValue": "false",
+            "allowedValues": ["true","false"]
+        },
+        
         "internalLoadBalancingMode": {
             "type": "int",
             "defaultValue": 3,
@@ -204,6 +251,7 @@
         },
         {
             "type": "Microsoft.web/serverfarms",
+            "tags": {"displayName":"Deploy App Service"},
             "sku": {
                 "name": "I1",
                 "tier": "Isolated"
@@ -226,6 +274,7 @@
         },
         {
             "type": "Microsoft.Web/sites",
+            "tags": {"displayName":"Deploy Web App"},
             "kind": "app",
             "name": "[parameters('sites_app1_name')]",
             "apiVersion": "2016-08-01",
@@ -270,6 +319,29 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('serverfarms_ASE_asp_name'))]",
                 "[resourceId('Microsoft.Web/hostingEnvironments', parameters('aseName'))]"
             ]
+        },
+        {
+            "type": "Microsoft.Sql/managedInstances",
+            "tags": {"displayName":"Deploy Managed Instance"},
+            "sku":{
+                "name":"GP_Gen5",
+                "tier" : "GeneralPurpose"
+            },
+            "name": "[parameters('sqlManagedInstanceName')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "identity":{"type": "SystemAssigned"},
+            "properties":{
+                "administratorLogin": "[parameters('sqlManagedInstanceAdminLogin')]",
+                "administratorLoginPassword": "[parameters('sqlManagedInstancePassword')]",
+                "subnetId": "[resourceId(parameters('vnetResourceGroupName'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetResourceName'),parameters('sqlManagedInstance-subnet'))]",
+                "storageSizeInGB":"[parameters('sqlManagedInstance-storageSizeInGB')]",
+                "vCores":"[parameters('sqlManagedInstance-vCores')]",
+                "licenseType": "[parameters('sqlManagedInstance-licenseType')]",
+                "hardwareFamily":"[parameters('sqlManagedInstance-hardwareFamily')]",
+                "collation":"[parameters('sqlManagedInstance-collation')]",
+                "publicDataEndpointEnabled":"[parameters('sqlManagedInstance-publicDataEndpointEnabled')]"
+            }
         }
     ],
     "outputs": {}

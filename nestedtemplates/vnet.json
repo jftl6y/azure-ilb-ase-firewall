@@ -68,7 +68,7 @@
         "nsgName": "[concat(parameters('vnetResourceName'), '-', parameters('subnetName'), '-ase-mgmt-nsg')]",
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
         "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]",
-        "azfwRouteTableName": "AzureFirewallSubnet-FirewallRouteTable",
+        "azfwRouteTableName": "AzureFirewallSubnet-RouteTable",
         "azfwName":"[concat(parameters('aseName'),'-firewall')]",
         "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]"        
         },

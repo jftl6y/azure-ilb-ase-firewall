@@ -47,19 +47,31 @@
             "type": "string",
             "defaultValue": "ase-subnet",
             "metadata": {
-                "description": "Subnet name that will contain the App Service Environment"
+                "description": "Subnet name which will contain the App Service Environment"
             }
         },
         "aseSubnetAddressRange": {
             "type": "string",
             "metadata": {
-                "description": "Address range that will be used by the App Service Environment"
+                "description": "Address range which will be used by the App Service Environment"
             }
+        },
+        "sqlManagedInstanceName":{
+            "type":"string",
+            "metadata": {"description": "Name of the Azure SQL Managed Instance"}
+        },
+        "sqlManagedInstance-subnet":{
+            "type":"string",
+            "metadata":{"description" : "Subnet name which will contain Azure Managed Instance"}
+        },
+        "sqlManagedInstanceSubnetAddressRange":{
+            "type":"string",
+            "metadata": {"description": "Address range which will be used by the Azure SQL Managed Instance"}
         },
         "azfwSubnetAddressRange":{
             "type":"string",
             "metadata": {
-                "description": "Address range that will be used by the Azure Firewall"
+                "description": "Address range which will be used by the Azure Firewall"
             }
         },
         "internalLoadBalancingMode": {
@@ -86,7 +98,7 @@
             "metadata": {
                 "description": "The location of resources, such as templates and DSC modules, that the template depends on"
             },
-            "defaultValue": "https://raw.githubusercontent.com/jftl6y/azure-ilb-ase-firewall/master"
+            "defaultValue": "https://raw.githubusercontent.com/jftl6y/azure-ilb-ase-firewall/frb-war-room"
         },
         "_artifactsLocationSasToken": {
             "type": "securestring",
@@ -152,6 +164,15 @@
                     },
                     "aseName":{
                         "value":"[parameters('aseName')]"
+                    },
+                    "sqlManagedInstanceName":{
+                        "value":"[parameters('sqlManagedInstanceName')]"
+                    },
+                    "sqlManagedInstance-subnet":{
+                        "value":"[parameters('sqlManagedInstance-subnet')]"
+                    },
+                    "sqlManagedInstanceSubnetAddressRange":{
+                        "value":"[parameters('sqlManagedInstanceSubnetAddressRange')]"
                     }
                 }
             }

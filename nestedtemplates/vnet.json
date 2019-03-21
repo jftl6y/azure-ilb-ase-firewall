@@ -62,26 +62,140 @@
             "type":"string",
             "metadata": {"description":"ASE name"},
             "defaultValue": "No"
+        },
+        "sqlManagedInstance-subnet":{
+            "type":"string",
+            "metadata":{"description" : "Managed Instance Subnet name"}
+        },
+        "sqlManagedInstanceSubnetAddressRange":{
+            "type":"string",
+            "metadata": {"description": "Managed Instance Subnet range"}
+        },
+        "sqlManagedInstanceName":{
+            "type":"string",
+            "metadata": {"description": "Name of the Azure SQL Managed Instance"}
         }
     },
     "variables": {
         "nsgName": "[concat(parameters('vnetResourceName'), '-', parameters('subnetName'), '-ase-mgmt-nsg')]",
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
+        "miNsgName": "[concat(parameters('vnetResourceName'), '-', parameters('subnetName'), '-mi-mgmt-nsg')]",
+        "miNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('miNsgName'))]",
         "subnetRouteTableName":"[concat(parameters('subnetName'), '-routeTable')]",
         "azfwRouteTableName": "AzureFirewallSubnet-RouteTable",
         "azfwName":"[concat(parameters('aseName'),'-firewall')]",
         "azfwPublicIp":"[concat(variables('azfwName'),'-pip')]",
         "azFwPrivateIpArray":"[split(parameters('azfwSubnetAddressRange'),'.')]",
-        "azFwPrivateIp":"[concat(variables('azFwPrivateIpArray')[0],'.',variables('azFwPrivateIpArray')[1],'.',variables('azFwPrivateIpArray')[2],'.4')]"
-        },
+        "azFwPrivateIp":"[concat(variables('azFwPrivateIpArray')[0],'.',variables('azFwPrivateIpArray')[1],'.',variables('azFwPrivateIpArray')[2],'.4')]",
+        "miRouteTableName" : "[concat(parameters('sqlManagedInstanceName'),'-RouteTable')]"    
+    },
     "resources": [
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "location": "[parameters('location')]",
+            "name": "[variables('miNsgName')]",
+            "tags": {
+                "displayName": "Deploy Managed Instance NSG"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "inbound-management",
+                        "properties": {
+                            "description": "Management ports for the Managed Instance",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": ["9000","9003","1438","1440","1452"],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name":"inbound-mi-subnet",
+                        "properties":{
+                            "protocol":"*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "destinationPortRange": "*",
+                            "destinationPOrtRanges":[],
+                            "sourcePortRanges":[],
+                            "sourceAddressPrefixes":[],
+                            "destinationAddressPrefixes":[],
+                            "direction":"Inbound",
+                            "priority":"110"
+                        }
+                    },
+                    {
+                        "name":"inbound-health-probe",
+                        "properties":{
+                            "protocol":"*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "destinationPortRange": "*",
+                            "destinationPOrtRanges":[],
+                            "sourcePortRanges":[],
+                            "sourceAddressPrefixes":[],
+                            "destinationAddressPrefixes":[],
+                            "direction":"Inbound",
+                            "priority":"120"
+                        }
+                    },
+                    {
+                        "name":"outbound-management",
+                        "properties":{
+                            "protocol":"TCP",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access":"Allow",
+                            "destinationPortRange": "*",
+                            "destinationPortRanges":[],
+                            "sourcePortRanges":[],
+                            "sourceAddressPrefixes":[],
+                            "destinationAddressPrefixes":[],
+                            "direction":"Outbound",
+                            "priority":"100"
+                        }
+                    },
+                    {
+                        "name":"outbound-mi-subnet",
+                        "properties":{
+                            "protocol":"*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]",
+                            "access":"Allow",
+                            "destinationPortRange": "*",
+                            "destinationPortRanges":[],
+                            "sourcePortRanges":[],
+                            "sourceAddressPrefixes":[],
+                            "destinationAddressPrefixes":[],
+                            "direction":"Outbound",
+                            "priority":"110"
+                        }
+                    }
+                ]
+                }
+        },
         {
             "apiVersion": "2018-04-01",
             "type": "Microsoft.Network/networkSecurityGroups",
             "location": "[parameters('location')]",
             "name": "[variables('nsgName')]",
             "tags": {
-                "displayName": "Deploy NSG"
+                "displayName": "Deploy ASE NSG"
             },
             "properties": {
                 "securityRules": [
@@ -732,6 +846,51 @@
             }
         },
         {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[variables('miRouteTableName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "Deploy Azure SQL Managed Instance UDR"
+            },
+            "properties": {
+                "routes": [
+                    {"Name":"subnet_to_vnetlocal","properties": { "addressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]","nextHopType":"Virtual network"}},
+                    {"Name":"mi-0-5-next-hop-internet","properties": { "addressPrefix": "0.0.0.0/5","nextHopType":"Internet"}},
+                    {"Name":"mi-11-8-nexthop-internet","properties": { "addressPrefix": "11.0.0.0/8","nextHopType":"Internet"}},
+                    {"Name":"mi-12-6-nexthop-internet","properties": { "addressPrefix": "12.0.0.0/6","nextHopType":"Internet"}},
+                    {"Name":"mi-128-3-nexthop-internet","properties": { "addressPrefix": "128.0.0.0/3","nextHopType":"Internet"}},
+                    {"Name":"mi-16-4-nexthop-internet","properties": { "addressPrefix": "16.0.0.0/4","nextHopType":"Internet"}},
+                    {"Name":"mi-160-5-nexthop-internet","properties": { "addressPrefix": "160.0.0.0/5","nextHopType":"Internet"}},
+                    {"Name":"mi-168-6-nexthop-internet","properties": { "addressPrefix": "168.0.0.0/6","nextHopType":"Internet"}},
+                    {"Name":"mi-172-12-nexthop-internet","properties": { "addressPrefix": "172.0.0.0/12","nextHopType":"Internet"}},
+                    {"Name":"mi-172-128-9-nexthop-internet","properties": { "addressPrefix": "172.128.0.0/9","nextHopType":"Internet"}},
+                    {"Name":"mi-172-32-11-nexthop-internet","properties": { "addressPrefix": "172.32.0.0/11","nextHopType":"Internet"}},
+                    {"Name":"mi-172-64-10-nexthop-internet","properties": { "addressPrefix": "172.64.0.0/10","nextHopType":"Internet"}},
+                    {"Name":"mi-173-8-nexthop-internet","properties": { "addressPrefix": "173.0.0.0/8","nextHopType":"Internet"}},
+                    {"Name":"mi-174-7-nexthop-internet","properties": { "addressPrefix": "174.0.0.0/7","nextHopType":"Internet"}},
+                    {"Name":"mi-176-4-nexthop-internet","properties": { "addressPrefix": "176.0.0.0/4","nextHopType":"Internet"}},
+                    {"Name":"mi-192-128-11-nexthop-internet","properties": { "addressPrefix": "192.128.0.0/11","nextHopType":"Internet"}},
+                    {"Name":"mi-192-160-13-nexthop-internet","properties": { "addressPrefix": "192.160.0.0/13","nextHopType":"Internet"}},
+                    {"Name":"mi-192-169-16-nexthop-internet","properties": { "addressPrefix": "192.169.0.0/16","nextHopType":"Internet"}},
+                    {"Name":"mi-192-170-15-nexthop-internet","properties": { "addressPrefix": "192.170.0.0/15","nextHopType":"Internet"}},
+                    {"Name":"mi-192-172-14-nexthop-internet","properties": { "addressPrefix": "192.172.0.0/14","nextHopType":"Internet"}},
+                    {"Name":"mi-192-176-12-nexthop-internet","properties": { "addressPrefix": "192.176.0.0/12","nextHopType":"Internet"}},
+                    {"Name":"mi-192-192-10-nexthop-internet","properties": { "addressPrefix": "192.192.0.0/10","nextHopType":"Internet"}},
+                    {"Name":"mi-192-9-nexthop-internet","properties": { "addressPrefix": "192.0.0.0/9","nextHopType":"Internet"}},
+                    {"Name":"mi-193-8-nexthop-internet","properties": { "addressPrefix": "193.0.0.0/8","nextHopType":"Internet"}},
+                    {"Name":"mi-194-7-nexthop-internet","properties": { "addressPrefix": "194.0.0.0/7","nextHopType":"Internet"}},
+                    {"Name":"mi-196-6-nexthop-internet","properties": { "addressPrefix": "196.0.0.0/6","nextHopType":"Internet"}},
+                    {"Name":"mi-200-5-nexthop-internet","properties": { "addressPrefix": "200.0.0.0/5","nextHopType":"Internet"}},
+                    {"Name":"mi-208-4-nexthop-internet","properties": { "addressPrefix": "208.0.0.0/4","nextHopType":"Internet"}},
+                    {"Name":"mi-224-3-nexthop-internet","properties": { "addressPrefix": "224.0.0.0/3","nextHopType":"Internet"}},
+                    {"Name":"mi-32-3-nexthop-internet","properties": { "addressPrefix": "32.0.0.0/3","nextHopType":"Internet"}},
+                    {"Name":"mi-64-2-nexthop-internet","properties": { "addressPrefix": "64.0.0.0/2","nextHopType":"Internet"}},
+                    {"Name":"mi-8-7-nexthop-internet","properties": { "addressPrefix": "8.0.0.0/7","nextHopType":"Internet"}}                    
+                ]
+            }
+        },
+        {
             "apiVersion": "2017-06-01",
             "type": "Microsoft.Network/virtualNetworks",
             "condition": "[equals(parameters('rebuildVNET'),'Yes')]",
@@ -779,6 +938,18 @@
                             },
                             "serviceEndpoints": [
                             ]
+                        }
+                    },
+                    {
+                        "name": "[parameters('sqlManagedInstance-subnet')]",
+                        "properties" :{
+                            "addressPrefix": "[parameters('sqlManagedInstanceSubnetAddressRange')]",
+                            "routeTable":{
+                                "id" : "[resourceId('Microsoft.Network/routeTables',variables('miRouteTableName'))]"
+                            },
+                            "networkSecurityGroup":{
+                                "id": "[variables('miNsgId')]"
+                            }
                         }
                     }
                 ]

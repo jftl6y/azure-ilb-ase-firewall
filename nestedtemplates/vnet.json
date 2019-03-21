@@ -900,7 +900,7 @@
     "outputs": {
         "AzureFWPrivateIPAddress":{
             "type":"string",
-            "value":"[reference(variables('azfwName')).ipConfigurations.PrivateIPAddress]"
+            "value":"[reference(variables('azfwName')).ipConfigurations[0].PrivateIPAddress]"
         }
     }
 }

@@ -815,6 +815,7 @@
                 "ApplicationRuleCollections" : [
                     {
                       "Name": "AppServiceEnvironment",
+                      "properties":{
                       "Priority": 500,
                       "Action": {
                         "Type": "Allow"
@@ -842,10 +843,12 @@
                         }
                       ]
                     }
+                }
                   ],
                   "NetworkRuleCollections"     : [
                     {
                       "Name": "Time-Diagnostics",
+                      "properties":{
                       "Priority": 300,
                       "Action": {
                         "Type": "Allow"
@@ -885,6 +888,7 @@
                         }
                       ]
                     }
+                }
                   ],
                   "natRuleCollections": []
             },

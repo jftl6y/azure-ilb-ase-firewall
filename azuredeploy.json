@@ -106,8 +106,7 @@
         },
         "sites_app1_name":{
             "type": "string",
-            "metadata": {"description": "Name of the initial ASE App"},
-            "defaultValue": "No"
+            "metadata": {"description": "Name of the initial ASE App"}
         }
     },
     "variables": {

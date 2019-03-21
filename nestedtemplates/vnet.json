@@ -764,9 +764,6 @@
                         "name": "AzureFirewallSubnet",
                         "properties": {
                             "addressPrefix": "[parameters('azfwSubnetAddressRange')]",
-                            "networkSecurityGroup": {
-                                "id": "[variables('nsgId')]"
-                            },
                             "routeTable":{
                                 "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
                             },

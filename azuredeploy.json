@@ -159,6 +159,19 @@
             "metadata": {"description": "SQL Collation"},
             "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
         },
+        "vmSubnetName": {
+            "type": "string",
+            "defaultValue": "vm-subnet",
+            "metadata": {
+                "description": "Subnet name for the subnet which will contain virtual machines"
+            }
+        },
+        "vmSubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Address range which will be used by the VM Subnet"
+            }
+        }, 
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -226,6 +239,12 @@
                     },
                     "sqlManagedInstanceSubnetAddressRange":{
                         "value":"[parameters('sqlManagedInstanceSubnetAddressRange')]"
+                    },
+                    "vmSubnetName":{
+                        "value":"[parameters('vmSubnetName')]"
+                    },
+                    "vmSubnetAddressRange":{
+                        "value":"[parameters('vmSubnetAddressRange')]"
                     }
                 }
             }

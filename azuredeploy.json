@@ -88,7 +88,6 @@
             "type": "string",
             "metadata": {"description": "Name of the initial ASE App (without the FQDN)"}
         }, 
-        "azfwSubnetAddressRange":{
             "type":"string",
             "metadata": {
                 "description": "Address range which will be used by the Azure Firewall"
@@ -223,7 +222,7 @@
                         "value": "[parameters('aseRebuildVNET')]"
                     },
                     "azfwSubnetAddressRange" : {
-                        "value" :"[parameters('azfwSubnetAddressRange')]"
+                        "value" :"[parameters('azureFirewallSubnetAddressRange')]"
                     },
                     "vnetResourceGroupName":{
                         "value":"[parameters('vnetResourceGroupName')]"

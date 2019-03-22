@@ -133,10 +133,7 @@
                             "sourceAddressPrefixes": [],
                             "destinationAddressPrefixes": []
                         }
-                    }
-                ]
-                },
-                "defaultSecurityRules": [
+                    },
                     {
                         "name": "AllowVnetInBound",
                         "properties": {
@@ -246,6 +243,7 @@
                         }
                     }
                 ]
+            }
         },
         {
             "apiVersion": "2018-04-01",

@@ -88,6 +88,7 @@
             "type": "string",
             "metadata": {"description": "Name of the initial ASE App (without the FQDN)"}
         }, 
+        "azureFirewallSubnetAddressRange":{
             "type":"string",
             "metadata": {
                 "description": "Address range which will be used by the Azure Firewall"

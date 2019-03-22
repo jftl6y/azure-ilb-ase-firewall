@@ -62,6 +62,15 @@
                 "description": "Address range of the virtual network"
             }
         },
+        "aseRebuildVNET": {
+            "type": "string",
+            "metadata": {"description":"Whether to rebuild the VNET (Yes) or not (No)"},
+            "defaultValue": "Yes",
+            "allowedValues": [
+                "Yes",
+                "No"
+            ]
+        },
         "aseSubnetName": {
             "type": "string",
             "defaultValue": "ase-subnet",
@@ -74,16 +83,7 @@
             "metadata": {
                 "description": "Address range which will be used by the App Service Environment"
             }
-        },
-        "aseRebuildVNET": {
-            "type": "string",
-            "metadata": {"description":"Whether to rebuild the VNET (Yes) or not (No)"},
-            "defaultValue": "Yes",
-            "allowedValues": [
-                "Yes",
-                "No"
-            ]
-        },
+        },        
         "sites_app1_name":{
             "type": "string",
             "metadata": {"description": "Name of the initial ASE App (without the FQDN)"}
@@ -346,7 +346,10 @@
                 "hardwareFamily":"[parameters('sqlManagedInstance-hardwareFamily')]",
                 "collation":"[parameters('sqlManagedInstance-collation')]",
                 "publicDataEndpointEnabled":"false"
-            }
+            },
+            "dependsOn": [
+                "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
+            ]
         }
     ],
     "outputs": {}

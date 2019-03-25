@@ -211,7 +211,9 @@
     "variables": {
         "vnetID": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('vnetResourceName'))]",
         "serverfarms_ASE_asp_name" : "[concat(parameters('aseName'),'-appServicePlan')]",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('vmSubnetName'))]"
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('vmSubnetName'))]",
+        "vmPipName":"[concat(parameters('virtualMachineName'),'-pip')]",
+        "vmNicName":"[concat(parameters('virtualMachineName'),'-nic')]"
     },
     "resources": [
         {
@@ -393,12 +395,13 @@
             ]
         },
         {
-            "name": "[concat(parameters('virtualMachineName'),'-nic')]",
+            "name": "[variables('vmNicName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-10-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIpAddresses/',parameters('virtualMachineName'),'-nic')]"
+                "[variables('vmPipName')]",
+                "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -418,13 +421,10 @@
             },
             "tags": {
                 "displayName" : "Deploy Jump Box NIC"
-            },
-            "dependsOn": [
-                "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
-            ]
+            }
         },
         {
-            "name": "[concat(parameters('virtualMachineName'),'-pip')]",
+            "name": "[variables('vmPipName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2018-08-01",
             "location": "[parameters('location')]",
@@ -436,7 +436,8 @@
             },
             "tags": {
                 "displayName":"Deploy Public IP Address"
-            }
+            },
+            "dependsOn": ["Microsoft.Resources/deployments/BuildOrUpdateASENetworking"]
         },
         {
             "name": "[parameters('virtualMachineName')]",
@@ -444,7 +445,8 @@
             "apiVersion": "2018-06-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('virtualMachineName'),'-nic')]"
+                "[variables('vmNicName')]",
+                "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
             ],
             "properties": {
                 "hardwareProfile": {

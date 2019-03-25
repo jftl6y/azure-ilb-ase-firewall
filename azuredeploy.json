@@ -413,7 +413,7 @@
                             },
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIpAddress": {
-                                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('virtualMachineName'),'-pip')]"
+                                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', variables('vmPipName'))]"
                             }
                         }
                     }

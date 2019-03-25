@@ -8,4 +8,4 @@
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-This template deploys an **ILB ASE** with Azure Firewall and SQL Managed Instances into Azure.
+This template deploys an **ILB ASE** with Azure Firewall and SQL Managed Instance into Azure.

@@ -172,6 +172,27 @@
                 "description": "Address range which will be used by the VM Subnet"
             }
         }, 
+        "virtualMachineName":{
+            "type":"string",
+            "metadata": {
+                "description": "Name for the VM Jump Box"
+            }
+        },
+        "virtualMachineSize":{
+            "type":"string",
+            "metadata": {
+                "description": "The VM Machine Size"
+            },
+            "defaultValue": "Standard_D2s_v3"
+        },
+        "adminUsername":{
+            "type": "string",
+            "metadata": {"description":"The administrator user for the jump box"}
+        },
+        "adminPassword":{
+            "type": "securestring",
+            "metadata": {"description": "The administrative user password for the jump box"}
+        },
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -189,7 +210,8 @@
     },
     "variables": {
         "vnetID": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('vnetResourceName'))]",
-        "serverfarms_ASE_asp_name" : "[concat(parameters('aseName'),'-appServicePlan')]"
+        "serverfarms_ASE_asp_name" : "[concat(parameters('aseName'),'-appServicePlan')]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('vmSubnetName'))]"
     },
     "resources": [
         {
@@ -369,6 +391,105 @@
             "dependsOn": [
                 "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
             ]
+        },
+        {
+            "name": "[concat(parameters('virtualMachineName'),'-nic')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-10-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/',parameters('virtualMachineName'),'-nic')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('virtualMachineName'),'-pip')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "tags": {
+                "displayName" : "Deploy Jump Box NIC"
+            },
+            "dependsOn": [
+                "Microsoft.Resources/deployments/BuildOrUpdateASENetworking"
+            ]
+        },
+        {
+            "name": "[concat(parameters('virtualMachineName'),'-pip')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod":"Dynamic"
+            },
+            "sku": {
+                "name": "Basic"
+            },
+            "tags": {
+                "displayName":"Deploy Public IP Address"
+            }
+        },
+        {
+            "name": "[parameters('virtualMachineName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-06-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('virtualMachineName'),'-nic')]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('virtualMachineName'),'-nic'))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                },
+                "licenseType": "Windows_Server",
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": false
+                    }
+                }
+            },
+            "tags": {
+                "displayName":"Deploy Jump Box"
+            }
         }
     ],
     "outputs": {}

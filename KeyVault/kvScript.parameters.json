@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "value": "keyVaultName"
+        },
+        "location": {
+            "value": "West US 2"
+        },
+        "tenantId": {
+            "value": "999988bf-86f1-41af-91ab-2d7cd011db47"
+        },
+        "skuName": {
+            "value": "Standard"
+        },
+        "keyVaultUri": {
+            "value": "https://keyVaultName.vault.azure.net/"
+        },
+        "enabledForDeployment": {
+            "value": "true"
+        },
+        "enabledForDiskEncryption": {
+            "value": "true"
+        },
+        "enabledForTemplateDeployment": {
+            "value": "true"
+        },
+        "enableSoftDelete": {
+            "value": "true"
+        },
+        "createMode": {
+            "value": "default"
+        },
+        "enablePurgeProtection": {
+            "value": "true"
+        },
+        "networkAcls": {
+            "value": {
+                "bypass": "AzureServices",
+                "defaultAction": "Deny",
+                "ipRules": [
+                    {
+                        "value": "10.10.0.0/16"
+                    },
+                    {
+                        "value": "10.11.0.0/16"
+                    }
+                ],
+                "virtualNetworkRules": [
+                    {
+                        "id": "/subscriptions/9999ed15-2e18-4b8e-9db7-6a61647dedfb/resourceGroups/resourceGroupName/providers/Microsoft.Network/virtualNetworks/ASE-Testing-RG2-vnet/subnets/ase-subnet"
+                    },
+                    {
+                        "id": "/subscriptions/9999ed15-2e18-4b8e-9db7-6a61647dedfb/resourceGroups/resrouceGroupName/providers/Microsoft.Network/virtualNetworks/ASE-Testing-RG2-vnet/subnets/vm-subnet"
+                    }
+                ]
+            }
+        }
+    }
+}

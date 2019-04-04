@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value":"East US"
+        },
+        "aseName": {
+            "value":"joscot-ase"
+        },
+        "dnsSuffix": {
+            "value":"ase.contoso.com"
+        },
+        "vnetResourceGroupName": {
+            "value":"applicationEnvironment-rg"
+        },
+        "vnetResourceName": {
+            "value":"myAppEnvironment-vnet"
+        },
+        "application_name": {
+            "value":"joscot-app"
+        },
+        "internalLoadBalancingMode": {
+          "value":3
+        },
+        "aseSubnetName": {
+            "value": "ase-subnet"
+        },
+        "serverfarms_ASE_asp_name":{
+            "value": "joscot-ase-asp"
+        }
+    }
+}

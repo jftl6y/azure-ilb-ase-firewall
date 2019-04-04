@@ -1,0 +1,105 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Key Vault Name"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure location where key vault will be created (e.g. East US)"
+            }
+        },
+        "tenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. - globally unique identifier"
+            }
+        },
+        "skuName": {
+            "type": "string",
+            "metadata": {
+                "description": "Standard or Premium"
+            }
+        },
+        "networkAcls": {
+            "type": "object",
+            "metadata": {
+                "description": "Network access policy"
+            }
+        },
+        "keyVaultUri": {
+            "type": "string",
+            "metadata": {
+                "description": "The URI of the vault for performing operations on keys and secrets"
+            }
+        },
+        "enabledForDeployment": {
+            "type": "string",
+            "metadata": {
+                "description": "Property to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault"
+            }
+        },
+        "enabledForDiskEncryption": {
+            "type": "string",
+            "metadata": {
+                "description": "Property to specify whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys"
+            }
+        },
+        "enabledForTemplateDeployment": {
+            "type": "string",
+            "metadata": {
+                "description": "Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault"
+            }
+        },
+        "enableSoftDelete": {
+            "type": "string",
+            "metadata": {
+                "description": "Property to specify whether the 'soft delete' functionality is enabled for this key vault. It does not accept false value"
+            }
+        },
+        "createMode": {
+            "type": "string",
+            "metadata": {
+                "description": "The vault's create mode to indicate whether the vault need to be recovered or not. - recover or default"
+            }
+        },
+        "enablePurgeProtection": {
+            "type": "string",
+            "metadata": {
+                "description": "Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('keyVaultName')]",
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2018-02-14",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "tenantId": "[parameters('tenantId')]",
+                "sku": {
+                    "family": "A",
+                    "name": "[parameters('skuName')]"
+                },
+                "accessPolicies": [],
+                "keyVaultUri": "[parameters('keyVaultUri')]",
+                "enabledForDeployment": "[parameters('enabledForDeployment')]",
+                "enabledForDiskEncryption": "[parameters('enabledForDiskEncryption')]",
+                "enabledForTemplateDeployment": "[parameters('enabledForTemplateDeployment')]",
+                "enableSoftDelete": "[parameters('enableSoftDelete')]",
+                "createMode": "[parameters('createMode')]",
+                "enablePurgeProtection": "[parameters('enablePurgeProtection')]",
+                "networkAcls": "[parameters('networkAcls')]"
+            }
+        }
+    ],
+    "outputs": {}
+}

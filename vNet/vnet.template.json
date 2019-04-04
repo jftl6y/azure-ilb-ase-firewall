@@ -1,0 +1,1513 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "allowedValues": [
+                "East US"
+            ],
+            "metadata": {
+                "description": "Location for all resources"
+            }
+        },
+        "vnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group where resources will be deployed"
+            }
+        },
+        "vnetResourceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the vnet"
+            }
+        },
+        "vnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Address range of the virtual network"
+            }
+        },
+        "aseSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Subnet name that will contain the App Service Environment"
+            }
+        },
+        "aseSubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Address range that will be used by the App Service Environment"
+            }
+        },
+        "aseNSGName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the NSG for the App Service Environment"
+            }
+        },
+        "aseRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the ASE Route Table"
+            }
+        },
+        "azureFirewallName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Firewall"
+            }
+        },
+        "deployAzureFirewall":{
+            "type": "bool",
+            "metadata": {"description":"Toggle whether to deploy the Azure Firewall"}
+        },
+        "azureFirewallRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Firewall Route Table"
+            }
+        },
+        "azureFirewallSubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Address range that will be used by the Azure Firewall Subnet"
+            }
+        },
+        "azureFirewallPublicIP": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the Azure Firewall public IP resource"
+            }
+        },
+        "managedInstanceSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Managed Instance Subnet name"
+            }
+        },
+        "managedInstanceSubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Managed Instance Subnet range"
+            }
+        },
+        "redisSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of Redis subnet"
+            }
+        },
+        "redisSubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Redis subnet address range"
+            }
+        },
+        "gatewaySubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Subnet name for the GatewaySubnet"
+            }
+        },
+        "GatewaySubnetAddressRange": {
+            "type": "string",
+            "metadata": {
+                "description": "Address range which will be used by the VM Subnet"
+            }
+        },
+        "sqlTags": {
+            "type": "object",
+            "metadata": {
+                "Description": "Resource Tags."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "Description": "Resource Tags."
+            }
+        },
+        "managedInstanceNSGName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Managed Instance NSG"
+            }
+        },
+        "managedInstanceRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Managed Instance Route Table"
+            }
+        }
+    },
+    "variables": {
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('aseNSGName'))]",
+        "azureFirewallPrivateIpArray": "[split(parameters('azureFireWallSubnetAddressRange'),'.')]",
+        "azureFireWallPrivateIp": "[concat(variables('azureFirewallPrivateIpArray')[0],'.',variables('azureFirewallPrivateIpArray')[1],'.',variables('azureFirewallPrivateIpArray')[2],'.4')]",
+        "miNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('managedInstanceNsgName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "location": "[parameters('location')]",
+            "name": "[parameters('managedInstanceNsgName')]",
+            "tags": "[parameters('sqlTags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "prepare-allow-mi_subnet-inbound",
+                        "properties": {
+                            "description": "Allow inbound inter-node traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managedInstanceSubnetAddressRange')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 160,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "prepare-allow-mi_subnet-outbound",
+                        "properties": {
+                            "description": "Allow outbound inter-node traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[parameters('managedInstanceSubnetAddressRange')]",
+                            "access": "Allow",
+                            "priority": 160,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "prepare-allow-management-outbound-80",
+                        "properties": {
+                            "description": "Allow outbound TCP traffic on port 80",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "80",
+                                "443",
+                                "12000"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "outbound-management",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Allow",
+                            "priority": 140,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "inbound-management",
+                        "properties": {
+                            "description": "Management ports for the Managed Instance",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "9000",
+                                "9003",
+                                "1438",
+                                "1440",
+                                "1452"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "outbound-mi-subnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "10.11.2.0/24",
+                            "access": "Allow",
+                            "priority": 150,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "inbound-mi-subnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.11.2.0/24",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "inbound-health-probe",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ],
+                "defaultSecurityRules": [
+                    {
+                        "name": "AllowVnetInBound",
+                        "properties": {
+                            "description": "Allow inbound traffic from all VMs in VNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 65000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancerInBound",
+                        "properties": {
+                            "description": "Allow inbound traffic from azure load balancer",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 65001,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllInBound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 65500,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowVnetOutBound",
+                        "properties": {
+                            "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 65000,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "AllowInternetOutBound",
+                        "properties": {
+                            "description": "Allow outbound traffic from all VMs to Internet",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Allow",
+                            "priority": 65001,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAllOutBound",
+                        "properties": {
+                            "description": "Deny all outbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 65500,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "location": "[parameters('location')]",
+            "name": "[parameters('aseNSGName')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Inbound-management",
+                        "properties": {
+                            "description": "Used to manage ASE from public VIP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "454-455",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [
+                                "70.37.57.58",
+                                "157.55.208.185",
+                                "52.174.22.21",
+                                "13.94.149.179",
+                                "13.94.143.126",
+                                "13.94.141.115",
+                                "52.178.195.197",
+                                "52.178.190.65",
+                                "52.178.184.149",
+                                "52.178.177.147",
+                                "13.75.127.117",
+                                "40.83.125.161",
+                                "40.83.121.56",
+                                "40.83.120.64",
+                                "52.187.56.50",
+                                "52.187.63.37",
+                                "52.187.59.251",
+                                "52.187.63.19",
+                                "52.165.158.140",
+                                "52.165.152.214",
+                                "52.165.154.193",
+                                "52.165.153.122",
+                                "104.44.129.255",
+                                "104.44.134.255",
+                                "104.44.129.243",
+                                "104.44.129.141",
+                                "23.102.188.65",
+                                "191.236.154.88",
+                                "13.64.115.203",
+                                "65.52.193.203",
+                                "70.37.89.222",
+                                "52.224.105.172",
+                                "23.102.135.246",
+                                "52.225.177.153",
+                                "65.52.172.237",
+                                "52.151.25.45",
+                                "40.124.47.188"
+                            ],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "ASE-internal-inbound",
+                        "properties": {
+                            "description": "ASE-internal-inbound",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "192.168.250.0/24",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbound-HTTP",
+                        "properties": {
+                            "description": "Allow HTTP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbount-HTTPS",
+                        "properties": {
+                            "description": "Allow HTTPS",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 130,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbound-FTP",
+                        "properties": {
+                            "description": "Allow FTP over port 21",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "21",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 140,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbound-FTPS",
+                        "properties": {
+                            "description": "Allow FTPS",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "990",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 150,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbound-FTP-Data",
+                        "properties": {
+                            "description": "RDP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "10001-10020",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 160,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Inbound-Remote-Debugging",
+                        "properties": {
+                            "description": "Visual Studio remote debugging",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "4016-4022",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 170,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-443",
+                        "properties": {
+                            "description": "Azure Storage blob",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-SMB",
+                        "properties": {
+                            "description": "Azure Storage queue",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "445",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-DB",
+                        "properties": {
+                            "description": "Database",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "1433",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-DB2",
+                        "properties": {
+                            "description": "Database 2",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "11000-11999",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 130,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-DB3",
+                        "properties": {
+                            "description": "Database 3",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "14000-14999",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 140,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-DNS",
+                        "properties": {
+                            "description": "DNS",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 150,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "ASE-internal-outbound",
+                        "properties": {
+                            "description": "Azure Storage queue",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "192.168.250.0/24",
+                            "access": "Allow",
+                            "priority": 160,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Outbound-80",
+                        "properties": {
+                            "description": "Outbound 80",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 170,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "ASE-to-VNET",
+                        "properties": {
+                            "description": "ASE to VNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "192.168.250.0/23",
+                            "access": "Allow",
+                            "priority": 180,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('aseRouteTableName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "Name": "70.37.57.58-route",
+                        "properties": {
+                            "addressPrefix": "70.37.57.58/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "157.55.208.185-route",
+                        "properties": {
+                            "addressPrefix": "157.55.208.185/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.174.22.21-route",
+                        "properties": {
+                            "addressPrefix": "52.174.22.21/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "13.94.149.179-route",
+                        "properties": {
+                            "addressPrefix": "13.94.149.179/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "13.94.143.126-route",
+                        "properties": {
+                            "addressPrefix": "13.94.143.126/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "13.94.141.115-route",
+                        "properties": {
+                            "addressPrefix": "13.94.141.115/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.178.195.197-route",
+                        "properties": {
+                            "addressPrefix": "52.178.195.197/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.178.190.65-route",
+                        "properties": {
+                            "addressPrefix": "52.178.190.65/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.178.184.149-route",
+                        "properties": {
+                            "addressPrefix": "52.178.184.149/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.178.177.147-route",
+                        "properties": {
+                            "addressPrefix": "52.178.177.147/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "13.75.127.117-route",
+                        "properties": {
+                            "addressPrefix": "13.75.127.117/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "40.83.125.161-route",
+                        "properties": {
+                            "addressPrefix": "40.83.125.161/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "40.83.121.56-route",
+                        "properties": {
+                            "addressPrefix": "40.83.121.56/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "40.83.120.64-route",
+                        "properties": {
+                            "addressPrefix": "40.83.120.64/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.187.56.50-route",
+                        "properties": {
+                            "addressPrefix": "52.187.56.50/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.187.63.37-route",
+                        "properties": {
+                            "addressPrefix": "52.187.63.37/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.187.59.251-route",
+                        "properties": {
+                            "addressPrefix": "52.187.59.251/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.187.63.19-route",
+                        "properties": {
+                            "addressPrefix": "52.187.63.19/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.165.158.140-route",
+                        "properties": {
+                            "addressPrefix": "52.165.158.140/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.165.152.214-route",
+                        "properties": {
+                            "addressPrefix": "52.165.152.214/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.165.154.193-route",
+                        "properties": {
+                            "addressPrefix": "52.165.154.193/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.165.153.122-route",
+                        "properties": {
+                            "addressPrefix": "52.165.153.122/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "104.44.129.255-route",
+                        "properties": {
+                            "addressPrefix": "104.44.129.255/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "104.44.134.255-route",
+                        "properties": {
+                            "addressPrefix": "104.44.134.255/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "104.44.129.243-route",
+                        "properties": {
+                            "addressPrefix": "104.44.129.243/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "104.44.129.141-route",
+                        "properties": {
+                            "addressPrefix": "104.44.129.141/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "23.102.188.65-route",
+                        "properties": {
+                            "addressPrefix": "23.102.188.65/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "191.236.154.88-route",
+                        "properties": {
+                            "addressPrefix": "191.236.154.88/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "13.64.115.203-route",
+                        "properties": {
+                            "addressPrefix": "13.64.115.203/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "65.52.193.203-route",
+                        "properties": {
+                            "addressPrefix": "65.52.193.203/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "70.37.89.222-route",
+                        "properties": {
+                            "addressPrefix": "70.37.89.222/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.224.105.172-route",
+                        "properties": {
+                            "addressPrefix": "52.224.105.172/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "23.102.135.246-route",
+                        "properties": {
+                            "addressPrefix": "23.102.135.246/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.225.177.153-route",
+                        "properties": {
+                            "addressPrefix": "52.225.177.153/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "65.52.172.237-route",
+                        "properties": {
+                            "addressPrefix": "65.52.172.237/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "52.151.25.45-route",
+                        "properties": {
+                            "addressPrefix": "52.151.25.45/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "40.124.47.188-route",
+                        "properties": {
+                            "addressPrefix": "40.124.47.188/32",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "name": "DefaultRoute",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[variables('azureFireWallPrivateIp')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('azureFirewallRouteTableName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "default-route",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "Internet"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('managedInstanceRouteTableName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "Name": "subnet_to_vnetlocal",
+                        "properties": {
+                            "addressPrefix": "[parameters('managedInstanceSubnetAddressRange')]",
+                            "nextHopType": "VnetLocal"
+                        }
+                    },
+                    {
+                        "Name": "mi-0-5-next-hop-internet",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/5",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-11-8-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "11.0.0.0/8",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-12-6-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "12.0.0.0/6",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-128-3-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "128.0.0.0/3",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-16-4-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "16.0.0.0/4",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-160-5-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "160.0.0.0/5",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-168-6-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "168.0.0.0/6",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-172-12-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "172.0.0.0/12",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-172-128-9-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "172.128.0.0/9",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-172-32-11-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "172.32.0.0/11",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-172-64-10-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "172.64.0.0/10",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-173-8-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "173.0.0.0/8",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-174-7-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "174.0.0.0/7",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-176-4-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "176.0.0.0/4",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-128-11-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.128.0.0/11",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-160-13-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.160.0.0/13",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-169-16-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.169.0.0/16",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-170-15-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.170.0.0/15",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-172-14-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.172.0.0/14",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-176-12-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.176.0.0/12",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-192-10-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.192.0.0/10",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-192-9-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "192.0.0.0/9",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-193-8-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "193.0.0.0/8",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-194-7-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "194.0.0.0/7",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-196-6-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "196.0.0.0/6",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-200-5-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "200.0.0.0/5",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-208-4-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "208.0.0.0/4",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-224-3-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "224.0.0.0/3",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-32-3-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "32.0.0.0/3",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-64-2-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "64.0.0.0/2",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "mi-8-7-nexthop-internet",
+                        "properties": {
+                            "addressPrefix": "8.0.0.0/7",
+                            "nextHopType": "Internet"
+                        }
+                    },
+                    {
+                        "Name": "default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "Internet"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2017-06-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('vnetResourceName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetAddressRange')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('aseSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('aseSubnetAddressRange')]",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('aseRouteTableName'))]"
+                            },
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Storage"
+                                },
+                                {
+                                    "service": "Microsoft.Sql"
+                                },
+                                {
+                                    "service": "Microsoft.EventHub"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AzureFirewallSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('azureFirewallSubnetAddressRange')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('azureFirewallRouteTableName'))]"
+                            },
+                            "serviceEndpoints": []
+                        }
+                    },
+                    {
+                        "name": "[parameters('managedInstanceSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('managedInstanceSubnetAddressRange')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',parameters('managedInstanceRouteTableName'))]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[variables('miNsgId')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('gatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('GatewaySubnetAddressRange')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('redisSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('RedisSubnetAddressRange')]"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('nsgId')]",
+                "[resourceId('Microsoft.Network/routeTables', parameters('aseRouteTableName'))]",
+                "[resourceId('Microsoft.Network/routeTables',parameters('azureFirewallRouteTableName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Standard"
+            },
+            "name": "[parameters('azureFirewallPublicIp')]",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "condition" :"[parameters('deployAzureFirewall')]",
+            "tags": {},
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[parameters('azureFirewallName')]",
+            "condition" :"[parameters('deployAzureFirewall')]",
+            "apiVersion": "2018-12-01",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets',parameters('vnetResourceName'),'AzureFirewallSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/publicIpAddresses', parameters('azureFirewallPublicIP'))]"
+                            }
+                        }
+                    }
+                ],
+                "ApplicationRuleCollections": [
+                    {
+                        "Name": "AppServiceEnvironment",
+                        "properties": {
+                            "Priority": 500,
+                            "Action": {
+                                "Type": "Allow"
+                            },
+                            "Rules": [
+                                {
+                                    "Name": "ASE",
+                                    "Description": null,
+                                    "SourceAddresses": [],
+                                    "TargetFqdns": [],
+                                    "FqdnTags": [
+                                        "WindowsUpdate",
+                                        "AppServiceEnvironment"
+                                    ],
+                                    "Protocols": [
+                                        {
+                                            "ProtocolType": "Http",
+                                            "Port": 80
+                                        },
+                                        {
+                                            "ProtocolType": "Https",
+                                            "Port": 443
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "NetworkRuleCollections": [
+                    {
+                        "Name": "Time-Diagnostics",
+                        "properties": {
+                            "Priority": 300,
+                            "Action": {
+                                "Type": "Allow"
+                            },
+                            "Rules": [
+                                {
+                                    "Name": "Time",
+                                    "Description": null,
+                                    "Protocols": [
+                                        "Any"
+                                    ],
+                                    "SourceAddresses": [
+                                        "*"
+                                    ],
+                                    "DestinationAddresses": [
+                                        "*"
+                                    ],
+                                    "DestinationPorts": [
+                                        "123"
+                                    ]
+                                },
+                                {
+                                    "Name": "Diagnostics",
+                                    "Description": null,
+                                    "Protocols": [
+                                        "Any"
+                                    ],
+                                    "SourceAddresses": [
+                                        "*"
+                                    ],
+                                    "DestinationAddresses": [
+                                        "*"
+                                    ],
+                                    "DestinationPorts": [
+                                        "12000"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "natRuleCollections": []
+            },
+            "dependsOn": [
+                "[resourceId(parameters('vnetResourceGroupName'),'Microsoft.Network/virtualNetworks',parameters('vnetResourceName'))]",
+                "[resourceId(parameters('vnetResourceGroupName'), 'Microsoft.Network/publicIpAddresses',parameters('azureFirewallPublicIP'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}

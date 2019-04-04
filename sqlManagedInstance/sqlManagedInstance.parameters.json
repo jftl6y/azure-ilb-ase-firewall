@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tags": {
+            "value": {
+                "tag1": "value1",
+                "tag2": "value2"
+            }
+        },
+        "vnetResourceGroupName": {
+            "value": "applicationEnvironment-rg"
+        },
+        "vnetResourceName": {
+            "value": "myAppEnvironment-vnet"
+        },
+        "location": {
+            "value": "East US"
+        },
+        "sqlManagedInstance-subnet": {
+            "value": "mi-subnet"
+        },
+        "sqlManagedInstanceName": {
+            "value": "joscotmi"
+        },
+        "sqlManagedInstanceAdminLogin": {
+            "value": "joscot"
+        },
+        
+        "sqlManagedInstance-storageSizeInGB": {
+            "value": "256"
+        },
+        "sqlManagedInstance-vCores": {
+            "value": "8"
+        },
+        "sqlManagedInstance-licenseType": {
+            "value": "BasePrice"
+        },
+        "sqlManagedInstance-skuName": {
+            "value": "GP_Gen5"
+        },
+        "sqlManagedInstance-skuEdition": {
+            "value": "GeneralPurpose"
+        },
+        "sqlManagedInstance-hardwareFamily": {
+            "value": "Gen5"
+        },
+        "sqlManagedInstance-collation": {
+            "value": "SQL_Latin1_General_CP1_CI_AS"
+        }
+    }
+}

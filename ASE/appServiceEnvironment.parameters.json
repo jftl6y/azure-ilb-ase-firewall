@@ -6,7 +6,7 @@
             "value":"East US"
         },
         "aseName": {
-            "value":"joscot-ase"
+            "value":"myApp-ase"
         },
         "dnsSuffix": {
             "value":"ase.contoso.com"
@@ -18,7 +18,7 @@
             "value":"myAppEnvironment-vnet"
         },
         "application_name": {
-            "value":"joscot-app"
+            "value":"myApp-app"
         },
         "internalLoadBalancingMode": {
           "value":3
@@ -27,7 +27,7 @@
             "value": "ase-subnet"
         },
         "serverfarms_ASE_asp_name":{
-            "value": "joscot-ase-asp"
+            "value": "myApp-ase-asp"
         }
     }
 }

@@ -21,12 +21,11 @@
             "value": "mi-subnet"
         },
         "sqlManagedInstanceName": {
-            "value": "joscotmi"
+            "value": "mymi"
         },
         "sqlManagedInstanceAdminLogin": {
-            "value": "joscot"
+            "value": "mySqlAdmin"
         },
-        
         "sqlManagedInstance-storageSizeInGB": {
             "value": "256"
         },

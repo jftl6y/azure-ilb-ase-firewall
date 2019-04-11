@@ -308,20 +308,24 @@
                         }
                     },
                     {
-                        "name":"outbound-management",
-                        "properties":{
-                            "protocol":"TCP",
+                        "name": "prepare-allow-management-outbound-80",
+                        "properties": {
+                            "description": "Allow outbound TCP traffic on port 80",
+                            "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "Internet",
-                            "access":"Allow",
-                            "destinationPortRange": "*",
-                            "destinationPortRanges":[],
-                            "sourcePortRanges":[],
-                            "sourceAddressPrefixes":[],
-                            "destinationAddressPrefixes":[],
-                            "direction":"Outbound",
-                            "priority":"100"
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [
+                                "80",
+                                "443",
+                                "12000"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
                         }
                     },
                     {

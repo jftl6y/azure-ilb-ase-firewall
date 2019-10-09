@@ -9,13 +9,13 @@
             "value": "joscot3/TestResize"
         },
         "databaseSkuName": {
-            "value": "Basic"
+            "value": "Standard"
         },
         "databaseTier": {
-            "value": "Basic"
+            "value": "Standard"
         },
         "databaseSkuCapacity": {
-            "value": 5
+            "value": 10
         },
         "databaseFamily": {
             "value": ""

@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of Resource"
+            }
+        },
+        "databaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of Database in form serverName/databaseName"
+            }
+        },
+        "databaseSkuName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the SKU.  Run get-AzSqlServerServiceObjective with the -Location switch to get all valid options for a region."
+            }
+        },
+        "databaseTier": {
+            "type": "string",
+            "metadata": {
+                "description": "The tier or edition of the particular SKU, e.g. Basic, Premium."
+            }
+        },
+        "databaseFamily": {
+            "type": "string",
+            "metadata": {
+                "description": "If the service has different generations of hardware, for the same SKU, then that can be captured here."
+            }
+        },
+        "databaseSkuCapacity": {
+            "type": "int",
+            "metadata": {
+                "description": "description"
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "name": "[parameters('databaseName')]",
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2017-10-01-preview",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('databaseSkuName')]",
+                "tier": "[parameters('databaseTier')]",
+                "family": "[parameters('databaseFamily')]",
+                "capacity": "[parameters('databaseSkuCapacity')]"
+            },
+            "properties": {
+            }
+
+        }
+    ],
+    "outputs": {
+    }
+}

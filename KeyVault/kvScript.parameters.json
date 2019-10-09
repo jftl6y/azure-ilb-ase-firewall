@@ -52,7 +52,7 @@
                         "id": "/subscriptions/9999ed15-2e18-4b8e-9db7-6a61647dedfb/resourceGroups/resourceGroupName/providers/Microsoft.Network/virtualNetworks/ASE-Testing-RG2-vnet/subnets/ase-subnet"
                     },
                     {
-                        "id": "/subscriptions/9999ed15-2e18-4b8e-9db7-6a61647dedfb/resourceGroups/resrouceGroupName/providers/Microsoft.Network/virtualNetworks/ASE-Testing-RG2-vnet/subnets/vm-subnet"
+                        "id": "/subscriptions/9999ed15-2e18-4b8e-9db7-6a61647dedfb/resourceGroups/resourceGroupName/providers/Microsoft.Network/virtualNetworks/ASE-Testing-RG2-vnet/subnets/vm-subnet"
                     }
                 ]
             }
